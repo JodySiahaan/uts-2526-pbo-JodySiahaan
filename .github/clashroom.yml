@@ -1,0 +1,213 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+# ------------------------------------------------
+# TASK 01 (20 pts)
+# ------------------------------------------------
+
+    - name: t01-01-basic-account
+      id: t01-01-basic-account
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t01-01-basic-account
+        setup-command: make compile
+        command: make -s test_01
+        input: |
+          create-account#Wiro Sableng#wirsab
+          create-account#Jaka Sembung#jaksem
+          ---
+        expected-output: |
+          wirsab|Wiro Sableng|0.0
+          jaksem|Jaka Sembung|0.0
+        comparison-method: exact
+        timeout: 1
+        max-score: 10
+
+    - name: t01-02-many-accounts
+      id: t01-02-many-accounts
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t01-02-many-accounts
+        setup-command: make compile
+        command: make -s test_01
+        input: |
+          create-account#Naruto Uzumaki#naruto
+          create-account#Sasuke Uchiha#sasuke
+          create-account#Sakura Haruno#sakura
+          create-account#Kakashi Hatake#kakashi
+          ---
+        expected-output: |
+          naruto|Naruto Uzumaki|0.0
+          sasuke|Sasuke Uchiha|0.0
+          sakura|Sakura Haruno|0.0
+          kakashi|Kakashi Hatake|0.0
+        comparison-method: exact
+        timeout: 1
+        max-score: 10
+
+# ------------------------------------------------
+# TASK 02 (25 pts)
+# ------------------------------------------------
+
+    - name: t02-01-deposit-withdraw
+      id: t02-01-deposit-withdraw
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t02-01-deposit-withdraw
+        setup-command: make compile
+        command: make -s test_02
+        input: |
+          create-account#Jaka Sembung#jaksem
+          deposit#jaksem#100.0#2023/02/14 10:10:10#Salary
+          withdraw#jaksem#30.0#2023/02/15 11:00:00#Food
+          ---
+        expected-output: |
+          jaksem|Jaka Sembung|70.0
+        comparison-method: exact
+        timeout: 1
+        max-score: 10
+
+    - name: t02-02-withdraw-insufficient
+      id: t02-02-withdraw-insufficient
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t02-02-withdraw-insufficient
+        setup-command: make compile
+        command: make -s test_02
+        input: |
+          create-account#Ichigo Kurosaki#ichigo
+          deposit#ichigo#100.0#2023/01/01 10:00:00#Salary
+          withdraw#ichigo#150.0#2023/01/02 10:00:00#Shopping
+          ---
+        expected-output: |
+          ichigo|Ichigo Kurosaki|100.0
+        comparison-method: exact
+        timeout: 1
+        max-score: 15
+
+# ------------------------------------------------
+# TASK 03 (25 pts)
+# ------------------------------------------------
+
+    - name: t03-01-transfer-basic
+      id: t03-01-transfer-basic
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t03-01-transfer-basic
+        setup-command: make compile
+        command: make -s test_03
+        input: |
+          create-account#Naruto Uzumaki#naruto
+          create-account#Sasuke Uchiha#sasuke
+          deposit#naruto#100.0#2023/02/14 10:10:10#Mission reward
+          transfer#naruto#sasuke#40.0#2023/02/15 12:00:00#Team fund
+          ---
+        expected-output: |
+          naruto|Naruto Uzumaki|60.0
+          sasuke|Sasuke Uchiha|40.0
+        comparison-method: exact
+        timeout: 1
+        max-score: 15
+
+    - name: t03-02-transfer-invalid
+      id: t03-02-transfer-invalid
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t03-02-transfer-invalid
+        setup-command: make compile
+        command: make -s test_03
+        input: |
+          create-account#Goku#goku
+          create-account#Vegeta#vegeta
+          deposit#goku#30.0#2023/01/01 10:00:00#Reward
+          transfer#goku#vegeta#50.0#2023/01/02 10:00:00#Battle
+          ---
+        expected-output: |
+          goku|Goku|30.0
+          vegeta|Vegeta|0.0
+        comparison-method: exact
+        timeout: 1
+        max-score: 10
+
+# ------------------------------------------------
+# TASK 04 (30 pts)
+# ------------------------------------------------
+
+    - name: t04-01-history-basic
+      id: t04-01-history-basic
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t04-01-history-basic
+        setup-command: make compile
+        command: make -s test_04
+        input: |
+          create-account#Wiro Sableng#wirsab
+          deposit#wirsab#50.0#2023/02/14 10:10:10#Income
+          withdraw#wirsab#20.0#2023/02/15 11:00:00#Food
+          withdraw#wirsab#40.0#2023/02/16 09:00:00#Shopping
+          show-account#wirsab
+          ---
+        expected-output: |
+          wirsab|Wiro Sableng|30.0
+          1|deposit|50.0|2023/02/14 10:10:10|Income
+          2|withdraw|-20.0|2023/02/15 11:00:00|Food
+        comparison-method: exact
+        timeout: 1
+        max-score: 15
+
+    - name: t04-02-sorting
+      id: t04-02-sorting
+      uses: classroom-resources/autograding-io-grader@v1
+      with:
+        test-name: t04-02-sorting
+        setup-command: make compile
+        command: make -s test_04
+        input: |
+          create-account#Tanjiro Kamado#tanjiro
+          deposit#tanjiro#100.0#2023/01/03 10:00:00#Reward
+          deposit#tanjiro#50.0#2023/01/01 10:00:00#Gift
+          deposit#tanjiro#30.0#2023/01/02 10:00:00#Mission
+          show-account#tanjiro
+          ---
+        expected-output: |
+          tanjiro|Tanjiro Kamado|180.0
+          2|deposit|50.0|2023/01/01 10:00:00|Gift
+          3|deposit|30.0|2023/01/02 10:00:00|Mission
+          1|deposit|100.0|2023/01/03 10:00:00|Reward
+        comparison-method: exact
+        timeout: 1
+        max-score: 15
+
+# ------------------------------------------------
+# REPORT
+# ------------------------------------------------
+
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        T01_01_RESULTS: "${{steps.t01-01-basic-account.outputs.result}}"
+        T01_02_RESULTS: "${{steps.t01-02-many-accounts.outputs.result}}"
+        T02_01_RESULTS: "${{steps.t02-01-deposit-withdraw.outputs.result}}"
+        T02_02_RESULTS: "${{steps.t02-02-withdraw-insufficient.outputs.result}}"
+        T03_01_RESULTS: "${{steps.t03-01-transfer-basic.outputs.result}}"
+        T03_02_RESULTS: "${{steps.t03-02-transfer-invalid.outputs.result}}"
+        T04_01_RESULTS: "${{steps.t04-01-history-basic.outputs.result}}"
+        T04_02_RESULTS: "${{steps.t04-02-sorting.outputs.result}}"
+      with:
+        runners: t01-01-basic-account,t01-02-many-accounts,t02-01-deposit-withdraw,t02-02-withdraw-insufficient,t03-01-transfer-basic,t03-02-transfer-invalid,t04-01-history-basic,t04-02-sorting
