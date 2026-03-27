@@ -1,58 +1,77 @@
 package fintech.driver;
 
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.Map;
 import fintech.model.*;
+import java.util.*;
 
 /**
- * @author NIM Nama
- * @author NIM Nama
+ * 12S24039 - Jody Alfonso Siahaan
  */
+
 public class Driver2 {
 
-    public static void main(String[] _args) {
-        Scanner sc = new Scanner(System.in);
-        // Menggunakan Map untuk mempermudah pencarian akun berdasarkan username
-        Map<String, Account> accountMap = new HashMap<>();
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        LinkedHashMap<String, Account> accounts = new LinkedHashMap<>();
+        int transactionId = 1;
 
-        while (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            if (line.equals("---")) break;
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine().trim();
 
-            String[] tokens = line.split("#");
-            String command = tokens[0];
+            if (line.equals("---")) {
+                break;
+            }
 
-            if (command.equals("create-account")) {
-                String name = tokens[1];
-                String username = tokens[2];
-                accountMap.put(username, new Account(name, username));
+            String[] parts = line.split("#");
 
-            } else if (command.equals("deposit")) {
-                String username = tokens[1];
-                double amount = Double.parseDouble(tokens[2]);
-                // Logika transaksi (timestamp dan deskripsi disimpan di objek transaksi)
-                if (accountMap.containsKey(username)) {
-                    accountMap.get(username).deposit(amount);
-                    // Contoh instansiasi objek inheritance (meski belum dicetak di Task 02)
-                    new DepositTransaction(username, amount, tokens[3], tokens[4]);
-                }
+            switch (parts[0]) {
 
-            } else if (command.equals("withdraw")) {
-                String username = tokens[1];
-                double amount = Double.parseDouble(tokens[2]);
-                if (accountMap.containsKey(username)) {
-                    accountMap.get(username).withdraw(amount);
-                    new WithdrawTransaction(username, amount, tokens[3], tokens[4]);
-                }
+                case "create-account":
+                    if (parts.length == 3) {
+                        String name = parts[1];
+                        String username = parts[2];
+                        accounts.put(username, new Account(name, username));
+                    }
+                    break;
+
+                case "deposit":
+                    if (parts.length == 5) {
+                        String username = parts[1];
+                        double amount = Double.parseDouble(parts[2]);
+                        String timestamp = parts[3];
+                        String description = parts[4];
+
+                        Account acc = accounts.get(username);
+                        if (acc != null) {
+                            Transaction t = new DepositTransaction(
+                                    transactionId++, username, amount, timestamp, description);
+                            t.process(acc);
+                        }
+                    }
+                    break;
+
+                case "withdraw":
+                    if (parts.length == 5) {
+                        String username = parts[1];
+                        double amount = Double.parseDouble(parts[2]);
+                        String timestamp = parts[3];
+                        String description = parts[4];
+
+                        Account acc = accounts.get(username);
+                        if (acc != null && acc.getBalance() >= amount) {
+                            Transaction t = new WithdrawTransaction(
+                                    transactionId++, username, amount, timestamp, description);
+                            t.process(acc);
+                        }
+                    }
+                    break;
             }
         }
 
-        // Output semua akun yang terdaftar
-        for (Account acc : accountMap.values()) {
+        // Output
+        for (Account acc : accounts.values()) {
             System.out.println(acc.toString());
         }
 
-        sc.close();
+        scanner.close();
     }
 }

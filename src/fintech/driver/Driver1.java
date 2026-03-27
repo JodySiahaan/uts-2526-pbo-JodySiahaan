@@ -1,42 +1,41 @@
 package fintech.driver;
 
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.List;
 import fintech.model.Account;
+import java.util.*;
 
 /**
- 12S24039 - Alfonso Siahaan
+ * 12S24039 - Jody Alfonso Siahaan
  */
+
 public class Driver1 {
 
-    public static void main(String[] _args) {
-        Scanner sc = new Scanner(System.in);
-        List<Account> accounts = new ArrayList<>();
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        LinkedHashMap<String, Account> accounts = new LinkedHashMap<>();
 
-        while (sc.hasNextLine()) {
-            String line = sc.nextLine();
-            
-            // Berhenti jika membaca "---"
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine().trim();
+
             if (line.equals("---")) {
                 break;
             }
 
-            String[] data = line.split("#");
-            String command = data[0];
+            String[] parts = line.split("#");
 
-            if (command.equals("create-account")) {
-                String name = data[1];
-                String username = data[2];
+            if (parts[0].equals("create-account") && parts.length == 3) {
+                String name = parts[1];
+                String username = parts[2];
 
-                // Menambahkan akun baru ke dalam list
-                Account newAccount = new Account(name, username);
-                accounts.add(newAccount);
-                
-                // Mencetak akun sesuai format output
-                System.out.println(newAccount.toString());
+                Account acc = new Account(name, username);
+                accounts.put(username, acc);
             }
         }
-        sc.close();
+
+        // Output
+        for (Account acc : accounts.values()) {
+            System.out.println(acc.toString());
+        }
+
+        scanner.close();
     }
 }

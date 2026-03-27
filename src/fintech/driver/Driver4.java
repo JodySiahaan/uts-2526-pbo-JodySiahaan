@@ -1,67 +1,103 @@
 package fintech.driver;
 
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.Map;
 import fintech.model.*;
+import java.util.*;
 
 /**
- * @author NIM Nama
- * @author NIM Nama
+ * 12S24039 - Jody Alfonso Siahaan
  */
+
 public class Driver4 {
 
-    public static void main(String[] _args) {
-        Scanner sc = new Scanner(System.in);
-        Map<String, Account> accountMap = new HashMap<>();
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        LinkedHashMap<String, Account> accounts = new LinkedHashMap<>();
+        int transactionId = 1;
 
-        while (sc.hasNextLine()) {
-            String line = sc.nextLine();
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine().trim();
+
             if (line.equals("---")) break;
 
-            String[] tokens = line.split("#");
-            String command = tokens[0];
+            String[] parts = line.split("#");
 
-            try {
-                if (command.equals("create-account")) {
-                    accountMap.put(tokens[2], new Account(tokens[1], tokens[2]));
+            switch (parts[0]) {
 
-                } else if (command.equals("deposit")) {
-                    Account acc = accountMap.get(tokens[1]);
+                case "create-account":
+                    accounts.put(parts[2], new Account(parts[1], parts[2]));
+                    break;
+
+                case "deposit": {
+                    Account acc = accounts.get(parts[1]);
+                    double amount = Double.parseDouble(parts[2]);
+
                     if (acc != null) {
-                        acc.addTransaction(new DepositTransaction(tokens[1], 
-                            Double.parseDouble(tokens[2]), tokens[3], tokens[4]));
+                        acc.deposit(amount);
+                        Transaction t = new DepositTransaction(
+                                transactionId++, parts[1], amount, parts[3], parts[4]);
+                        acc.addTransaction(t);
                     }
-
-                } else if (command.equals("withdraw")) {
-                    Account acc = accountMap.get(tokens[1]);
-                    if (acc != null) {
-                        double amt = Double.parseDouble(tokens[2]);
-                        acc.validateWithdraw(amt); // Cek apakah saldo cukup
-                        acc.addTransaction(new WithdrawTransaction(tokens[1], amt, tokens[3], tokens[4]));
-                    }
-
-                } else if (command.equals("transfer")) {
-                    Account sender = accountMap.get(tokens[1]);
-                    Account receiver = accountMap.get(tokens[2]);
-                    if (sender != null && receiver != null) {
-                        double amt = Double.parseDouble(tokens[3]);
-                        sender.validateWithdraw(amt);
-                        
-                        Transaction t = new TransferTransaction(tokens[1], tokens[2], amt, tokens[4], tokens[5]);
-                        sender.addTransaction(t);
-                        // Untuk penerima, ini dianggap deposit dari transfer
-                        receiver.addTransaction(new DepositTransaction(tokens[2], amt, tokens[4], tokens[5]));
-                    }
-
-                } else if (command.equals("show-account")) {
-                    Account acc = accountMap.get(tokens[1]);
-                    if (acc != null) acc.printAccountInfo();
+                    break;
                 }
-            } catch (NegativeBalanceException e) {
-                // Program tidak berhenti, cukup abaikan transaksi yang gagal
+
+                case "withdraw": {
+                    Account acc = accounts.get(parts[1]);
+                    double amount = Double.parseDouble(parts[2]);
+
+                    if (acc != null) {
+                        try {
+                            acc.withdraw(amount);
+                            Transaction t = new WithdrawTransaction(
+                                    transactionId++, parts[1], amount, parts[3], parts[4]);
+                            acc.addTransaction(t);
+                        } catch (NegativeBalanceException e) {
+                            // tidak berhenti
+                        }
+                    }
+                    break;
+                }
+
+                case "transfer": {
+                    Account sender = accounts.get(parts[1]);
+                    Account receiver = accounts.get(parts[2]);
+                    double amount = Double.parseDouble(parts[3]);
+
+                    if (sender != null && receiver != null) {
+                        try {
+                            sender.transfer(amount, receiver);
+                            Transaction t = new TransferTransaction(
+                                    transactionId++, parts[1], parts[2], amount, parts[4], parts[5]);
+                            sender.addTransaction(t);
+                        } catch (NegativeBalanceException e) {
+                            // lanjut
+                        }
+                    }
+                    break;
+                }
+
+                case "show-account": {
+                    Account acc = accounts.get(parts[1]);
+                    if (acc != null) {
+                        System.out.println(acc);
+
+                        List<Transaction> list = acc.getTransactions();
+                        list.sort(Comparator.comparing(Transaction::getTimestamp));
+
+                        for (Transaction t : list) {
+                            System.out.println(
+                                t.id + "|" +
+                                t.getType() + "|" +
+                                t.getSignedAmount() + "|" +
+                                t.getTimestamp() + "|" +
+                                t.description
+                            );
+                        }
+                    }
+                    break;
+                }
             }
         }
-        sc.close();
+
+        scanner.close();
     }
 }
