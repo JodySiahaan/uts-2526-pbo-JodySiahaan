@@ -1,8 +1,7 @@
-package academic.driver;
+package fintech.driver;
 
 /**
- * @author NIM Nama
- * @author NIM Nama
+12S24039 - Jody Alfonso Siahaan
  */
 public class Driver3 {
 
